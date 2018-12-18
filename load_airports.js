@@ -14,7 +14,7 @@ MongoClient.connect('mongodb://localhost:27017',{useNewUrlParser: true}, functio
         console.log(String(result.deletedCount)+" records deleted.");
     });
 
-    fs.createReadStream('data/airports.csv')
+    fs.createReadStream('data/airports.csv') // http://ourairports.com/data/airports.csv
     .pipe(csv())
     .on('data', function(data){
         try {
