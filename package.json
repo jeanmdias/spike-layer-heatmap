@@ -18,6 +18,7 @@
   "homepage": "https://github.com/jeanmdias/spike-layer-heatmap#readme",
   "dependencies": {
     "assert": "^1.4.1",
+    "async": "^2.6.1",
     "csv-parser": "^2.1.0",
     "express": "^4.16.4",
     "fs": "0.0.1-security",

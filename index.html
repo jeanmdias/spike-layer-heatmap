@@ -21,10 +21,10 @@
       }
       function getPoints() {
         var listPoints = [];
-        fetch('static/location.json').then(function(response) {
+          fetch('static/points.json').then(function(response) {
           response.json().then(function(result) {
             for (let value of result.locations) {
-              listPoints.push(new google.maps.LatLng(value.Latitude, value.Longitude));
+              listPoints.push(new google.maps.LatLng(value.latitude, value.longitude));
             }
           });
         });
