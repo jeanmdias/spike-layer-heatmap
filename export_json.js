@@ -10,18 +10,21 @@ MongoClient.connect('mongodb://localhost:27017',{useNewUrlParser: true}, functio
     const db = client.db('spike-layer-heatmap');
     const collection = db.collection('airports');
 
+    var document = [];
+    var listLegs;
+
     async.series([
 
-        function(callback) {
+        function(seriesCallback) {
             collection.deleteMany({}, function(err, result) {
                 assert.equal(null,err);
                 console.log('**************************************************************************************');
                 console.log('** '+String(result.deletedCount)+' records deleted.');
-                callback();
+                seriesCallback();
             });
         },
 
-        function(callback) {
+        function(seriesCallback) {
             fs.createReadStream('data/airports.csv')
             .pipe(csv())
             .on('data', function(data){
@@ -35,55 +38,71 @@ MongoClient.connect('mongodb://localhost:27017',{useNewUrlParser: true}, functio
                 }
             })
             .on('end',function(){
-                console.log('** CSV loaded from http://ourairports.com/data/airports.csv');
-                callback();
+                console.log('** List of airports loaded from http://ourairports.com/data/airports.csv');
+                seriesCallback();
             });
         },
         
-        function(callback) {
-            var document = [];
-            var listLegs = JSON.parse(fs.readFileSync('data/flightleg.json'));
+        function(seriesCallback) {
+            listLegs = JSON.parse(fs.readFileSync('data/flightleg.json'));
+            console.log('** List of flightlegs loaded');
+            seriesCallback();
+        },
+        
+        function(seriesCallback) {
 
-            // TODO listLegs.locations.forEach(function(item) {
-            async.forEach(listLegs.locations, function(item, callback) {
+            async.forEach(listLegs.locations, function(item, eachCallback) {
                 
-                collection.findOne({'iata_code':item.departureairportcode}, function(err, res) {
-                    assert.equal(null, err);
-                    if (!res) {
-                        console.log('Aeroporto '+item.departureairportcode+' sem coordenadas');
-                    } else {
-                        document.push({
-                            airportcode: item.departureairportcode,
-                            latitude: 37.782551,
-                            longitude: -122.445368
-                        });
-                    }
-                });
+                async.series([
 
-                collection.findOne({'iata_code':item.arrivalairportcode}, function(err, res) {
-                    assert.equal(null, err);
-                    if (!res) {
-                        console.log('Aeroporto '+item.arrivalairportcode+' sem coordenadas');
-                    } else {
-                        document.push({
-                            airportcode: item.arrivalairportcode,
-                            latitude: 37.782551,
-                            longitude: -122.445368
+                    // Departure
+                    function(callback) {
+                        collection.findOne({'iata_code':item.departureairportcode}, function(err, res) {
+                            assert.equal(null, err);
+                            if (!res) {
+                                console.log('Aeroporto '+item.departureairportcode+' sem coordenadas');
+                                callback();
+                            } else {
+                                document.push({
+                                    lat: res.latitude_deg,
+                                    lng: res.longitude_deg
+                                });
+                                callback();
+                            }
                         });
+                    },
+
+                    // Arrival
+                    function(callback) {
+                        collection.findOne({'iata_code':item.arrivalairportcode}, function(err, res) {
+                            assert.equal(null, err);
+                            if (!res) {
+                                console.log('Aeroporto '+item.arrivalairportcode+' sem coordenadas');
+                                callback();
+                            } else {
+                                document.push({
+                                    lat: res.latitude_deg,
+                                    lng: res.longitude_deg
+                                });
+                                callback();
+                            }
+                        }); 
                     }
-                });
-            
+
+                ], function(err, results) {
+                    eachCallback();
+                }); 
+
             }, function() {
                 console.log('** Points list created');
-                callback();
-            });
-            //});            
+                seriesCallback();
+            });         
         },
-
-        function(callback) {
+        
+        function(seriesCallback) {
             fs.writeFile('public/points.json', '{"locations":'+JSON.stringify(document)+'}');
             console.log('** JSON created successfully.');
-            callback();
+            seriesCallback();
         },
 
     ], function() {

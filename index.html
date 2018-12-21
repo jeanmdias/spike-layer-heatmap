@@ -10,9 +10,8 @@
     <script>
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 10,
-          center: {lat: 37.775, lng: -122.434},
-          mapTypeId: 'satellite'
+          zoom: 2,
+          center: {lat: -23.435556411743164, lng: -46.47305679321289}
         });
         heatmap = new google.maps.visualization.HeatmapLayer({
           data: getPoints(),
@@ -24,7 +23,7 @@
           fetch('static/points.json').then(function(response) {
           response.json().then(function(result) {
             for (let value of result.locations) {
-              listPoints.push(new google.maps.LatLng(value.latitude, value.longitude));
+              listPoints.push(new google.maps.LatLng(value.lat, value.lng));
             }
           });
         });
