@@ -23,7 +23,7 @@
           fetch('static/points.json').then(function(response) {
           response.json().then(function(result) {
             for (let value of result.locations) {
-              listPoints.push(new google.maps.LatLng(value.lat, value.lng));
+              listPoints.push({location: new google.maps.LatLng(value.lat, value.lng), weight: value.weight});
             }
           });
         });
