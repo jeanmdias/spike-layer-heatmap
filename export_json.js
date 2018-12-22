@@ -3,11 +3,14 @@ const csv = require('csv-parser');
 const async = require('async');
 const assert = require('assert');
 
+require('dotenv').config();
+var url = process.env.MONGODB_URI;
+
 const MongoClient = require('mongodb').MongoClient;
 
 console.log('**************************************************************************************');
 
-MongoClient.connect('mongodb://localhost:27017',{useNewUrlParser: true}, function(err, client) {
+MongoClient.connect(url,{useNewUrlParser: true}, function(err, client) {
    
     const db = client.db('spike-flights-heatmap');
     const col_airports = db.collection('airport');
